@@ -43,7 +43,15 @@ void layer::create(int _input_size, int _neuron_num){
   input_num = _input_size;
 }
 void layer::calculate(){
-  
+  double sum;
+  for(int i=0;i<neuron_num;i++){
+    sum = 0.0;
+    for(int j=0;j<input_num;j++){
+      sum += neurons[i]->weights[j]*layer_input[j];
+    }
+    sum += neurons[i]->wgain*neurons[i]->gain;
+    neurons[i]->output = 1.f/(1.f+exp(-sum));
+  }
 }
 
 void bp_network::create(int _input_num, int _intput_neurons, int _output_num, int * _hidden_layers, int _hidden_layer_num){
@@ -69,5 +77,84 @@ void bp_network::create(int _input_num, int _intput_neurons, int _output_num, in
   }
 }
 void bp_network::propagate(const double *_input){
+  memcpy(input_layer.layer_input, input, input_layer.input_num*sizeof(double));
+  input_layer.calculate();
+  update(-1);
+  if(hidden_layer){
+    for(int i=0;i<hidden_layer_num;i++){
+      hidden_layer[i]->calculate();
+      update(i);
+    }
+  }
+  output_layer.calculate();
+}
 
+double bp_network::train(const double * _desired_output, const double *_input, double _alpha, double _momentum){
+  double errorg = 0;
+  double errorc;
+  double sum =0, csum=0;
+  double delta, udelta;
+  double output;
+  propagate(input);
+  for(int i=0;i<output_layer.neuron_num;i++){
+    output = output_layer.neurons[i]->output;
+    errorc = (_desired_output[i] - output)*output*(1-output);
+    errorg += (_desired_output[i] - output)*(_desired_output[i] - output);
+    for(int j=0; j< output_layer.input_num;j++){
+      delta = output_layer.neurons[i]->deltas[j];
+      udelta = _alpha*errorc*output_layer.layer_input[j]+delta*_momentum;
+      output_layer.neurons[i]->weights[j] += udelta;
+      output_layer.neurons[i]->deltas[j] = udelta;
+      sum += output_layer.neurons[i]->weights[j]*errorc;
+    }
+    output_layer.neurons[i]->wgain += alpha*errorc*output_layer.neurons[i]->gain;
+  }
+  for(int i = hidden_layer_num-1;i>=0;i--){
+    for(int j =0; j< hidden_layer[i]->neuron_num;j++){
+      output = hidden_layer[i]->neurons[j]->output;
+      errorc = output*(1-output)*sum;
+      for(int k=0;k<hidden_layer[i]->input_num;k++){
+        delta=hidden_layer[i]->neurons[j]->deltas[k];
+        udelta=alpha*errorc*hidden_layer[i]->layer_input[k] + delta*_momentum;
+        hidden_layer[i]->neurons[j]->weights[k] += udelta;
+        hidden_layer[i]->neurons[j]->deltas[k] = udelta;
+        csum += hidden_layer[i]->neurons[j]->weights[k]*errorc;
+      }
+      hidden_layer[i]->neurons[j]->wgain+= alpha*errorc*hidden_layer[i]->neurons[j]->gain;
+    }
+    sum = csum;
+    csum = 0;
+  }
+  for(int i = 0;i<input_layer.neuron_num;i++){
+    output = input_layer.neurons[i]->output;
+    errorc = output*(1-output)*sum;
+    for(int j =0;j<input_layer.input_num;j++){
+      delta = input_layer.neurons[i]->deltas[j];
+      udelta = alpha*errorc*input_layer.layer_input[j] +delta*_momentum;
+      input_layer.neurons[i]->weights[j]+= udelta;
+      input_layer.neurons[i]->deltas[j] = udelta;
+    }
+    input_layer.neurons[i]->wgain += alpha*errorc*input_layer.neurons[i]->gain;
+  }
+  return errorg/2;
+}
+
+void bp_network::update(int layer_index){
+  if(layer_index ==-1){
+    for(int i=0;i<input_layer.neuron_num;i++){
+      if(hidden_layer){
+        hidden_layer[0]->layer_input[i] = input_layer.neurons[i]->output;
+      }else{
+        output_layer.layer_input[i] = input_layer.neurons[i]->output;
+      }
+    }
+  }else{
+    for(int i=0;i<hidden_layer[layer_index]->neuron_num;i++){
+      if(layer_index < hidden_layer_num -1){
+        hidden_layer[layer_index+1]->layer_input[i] = hidden_layer[layer_index]->neurons[i]->output;
+      }else{
+        output_layer.layer_input[i] = hidden_layer[layer_index]->neurons[i]->output;
+      }
+    }
+  }
 }
