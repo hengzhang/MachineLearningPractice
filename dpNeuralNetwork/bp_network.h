@@ -55,7 +55,7 @@ struct layer{
     free(layer_input);
   }
   void create(int _input_size, int _neuron_num){
-    if(_input_size ==0 && _neuron_num == 0){
+    if((_input_size ==0) && (_neuron_num == 0)){
       std::cout<<"Error in init layer. Fail to set input size & neuron number."<<std::endl;
       abort();
     }
@@ -100,7 +100,8 @@ class bp_network{
         abort();
       }
       input_layer.create(_input_num, _input_neurons);
-      if((hidden_layer == NULL) &&(hidden_layer_num == 0)){
+      std::cout<<"input layer create done."<<std::endl;
+      if((_hidden_layers != NULL) &&(_hidden_layer_num != 0)){
         hidden_layer = new layer*[_hidden_layer_num];
         hidden_layer_num = _hidden_layer_num;
         for(int i =0;i<hidden_layer_num;i++){
@@ -109,11 +110,14 @@ class bp_network{
             hidden_layer[i]->create(_input_neurons,_hidden_layers[i]);
           }else{
             hidden_layer[i]->create(_hidden_layers[i-1],_hidden_layers[i]);
+            std::cout<<"hidden->hidden layer create done."<<std::endl;
           }
         }
         output_layer.create(_hidden_layers[_hidden_layer_num-1], _output_num);
+        std::cout<<"output layer(with hidden layer) create done."<<std::endl;
       }else{
         output_layer.create(_input_neurons, _output_num);
+        std::cout<<"output layer(without hidden layer) create done."<<std::endl;
       }
     }
     void propagate(const double *_input){

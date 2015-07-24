@@ -27,9 +27,12 @@ int main(){
     {0}
   };
   int * hidden_layers = (int *)malloc(sizeof(int)*HIDDEN_LAYERS_NUM);
+  std::cout<<"Hidden_laers init:";
   for(int i=0;i<HIDDEN_LAYERS_NUM;i++){
-    hidden_layers[i] = (int)(rand())/((int)(RAND_MAX));
+    hidden_layers[i] = (int)(rand()%10)+1;
+    std::cout<<hidden_layers[i]<<" ";
   }
+  std::cout<<std::endl;
   bp_network net;
   double error;
   cout << "Creating Neural Network" << endl;
