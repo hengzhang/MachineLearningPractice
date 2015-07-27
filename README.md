@@ -1,6 +1,7 @@
 # MachineLearningPractice
-A Set of Machine Learning Algorithms in Practice.
+Machine Learning Practice
 ============
+A Set of Machine Learning Algorithms in Practice.
 
 
 Introduction
