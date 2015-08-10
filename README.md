@@ -7,7 +7,7 @@ A Set of Machine Learning Algorithms in Practice.
 Introduction
 ============
 
-MachineLearning Practice rewritten in C++ using HPX.
+MachineLearning Practice rewritten in C++.
 
 Build Instructions
 ==================
@@ -16,6 +16,7 @@ Build Instructions
 
 ### Install MLAP
 1. Clone the MLAP master git repository:
+------------
 
 git clone git://github.com/hengzhang/MachineLearningPractice.git
 
