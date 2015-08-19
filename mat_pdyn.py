@@ -2,7 +2,7 @@ import wx
 from matplotlib.figure import Figure
 import matplotlib.font_manager as font_manager
 import numpy as np
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as figure_canvas
 
 TIMER_ID = wx.NewId()
 POINTS =100
@@ -10,7 +10,7 @@ class PlotFigure(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self,None,wx.ID_ANY,title="Macaca Power Consumption Monitor",size=(600,400))
         self.fig = Figure((6,4),100)
-        self.canvas = FigureCanvas(self,wx.ID_ANY,self.fig)
+        self.canvas = figure_canvas(self,wx.ID_ANY,self.fig)
         self.ax = self.fig.add_subplot(111)
         self.ax.set_ylim([0,100])
         self.ax.set_xlim([0,POINTS])
@@ -19,10 +19,10 @@ class PlotFigure(wx.Frame):
         self.ax.set_xticks(range(0,101,10))
         self.ax.set_yticks(range(0,101,10))
         self.ax.grid(True)
-        self.user = [None]*POINTS
-        self.user_2 = [None]*POINTS
-        self.l_user,=self.ax.plot(range(POINTS),self.user,label='Power Consumption Ratio %')
-        self.r_user,=self.ax.plot(range(POINTS),self.user_2,label='Job Finish Ratio %')
+        self.power = [None]*POINTS
+        self.finish = [None]*POINTS
+        self.power_plot,=self.ax.plot(range(POINTS),self.power,label='Power Consumption Ratio %')
+        self.finish_plot ,=self.ax.plot(range(POINTS),self.finish,label='Job Finish Ratio %')
 
         self.ax.legend(loc='upper center',
                             ncol=4,
@@ -37,12 +37,12 @@ class PlotFigure(wx.Frame):
         value = float(temp[1]) * 100
         print value
         value2 = float(temp[2]) * 1000
-        self.user = self.user[1:]+[ int(value)]
-        self.user_2 = self.user_2[1:]+[ int(value2)]
-        self.l_user.set_ydata(self.user)
-        self.r_user.set_ydata(self.user_2)
-        self.ax.draw_artist(self.l_user)
-        self.ax.draw_artist(self.r_user)
+        self.power = self.power[1:]+[ int(value)]
+        self.finish = self.finish[1:]+[ int(value2)]
+        self.power_plot.set_ydata(self.power)
+        self.finish_plot.set_ydata(self.finish)
+        self.ax.draw_artist(self.power_plot)
+        self.ax.draw_artist(self.finish_plot)
         self.canvas.blit(self.ax.bbox)
     def __del__( self ):
         t.Stop()
